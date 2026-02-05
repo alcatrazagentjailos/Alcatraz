@@ -9,6 +9,8 @@ Run:
 """
 
 from __future__ import annotations
+from dotenv import load_dotenv
+load_dotenv()
 import ast, os, json, time, queue, signal, traceback
 from multiprocessing import Process, Queue
 from dataclasses import dataclass, field

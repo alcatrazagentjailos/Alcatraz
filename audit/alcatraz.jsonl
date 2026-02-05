@@ -1,2 +1,0 @@
-{"ts": 1770216586.3370056, "event": "tool_attempt", "tool": "bankr", "prompt": "What is the price of ETH on Base?"}
-{"ts": 1770216587.7891788, "event": "CELL_KILLED", "reason": "BANKR_HTTP_ERROR:HTTP Error 403: Forbidden"}
