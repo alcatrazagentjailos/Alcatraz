@@ -199,7 +199,7 @@ if __name__ == "__main__":
 
     AGENT_CODE = r'''
 def run(TASK, TOOLS):
-    return TOOLS.bankr_prompt("Buy $50 ETH on Base")
+    return TOOLS.bankr_prompt("Buy $50 ETH on solana")
 '''
 
     result = run_agent(
@@ -208,7 +208,7 @@ def run(TASK, TOOLS):
             ("bankr.use", 60, {
                 "mode": "trade",             # Step 6
                 "execution": "dry_run",      # ✅ Step 7
-                "allowed_chains": ["base"],
+                "allowed_chains": ["solana"],
                 "max_calls_per_min": 5,
                 "max_usd": 100,
                 "poll_timeout_s": 60,

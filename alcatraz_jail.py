@@ -272,7 +272,7 @@ def run(TASK, TOOLS):
             ("bankr.use", 60, {
                 "allowed_actions": ["price"],
                 "blocked_actions": ["transfer", "withdraw", "approve", "bridge"],
-                "max_usd": 25,
+                "max_usd": 101,
                 "max_calls_per_min": 5,
                 "poll_timeout_s": 60,
             }),

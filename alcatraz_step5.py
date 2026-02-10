@@ -147,14 +147,14 @@ class ToolGate:
                     self.kill.trip("BANKR_DENIED:MAX_USD_EXCEEDED")
 
         self.audit.write("tool_attempt", tool="bankr", prompt=prompt)
-
         # ---------------- BANKR CALL -------------------------
         api_key = os.environ.get("BANKR_API_KEY")
         if not api_key:
             self.kill.trip("BANKR_API_KEY_MISSING")
 
+        bankr_base = os.environ.get("BANKR_API_URL", "https://api.bankr.bot")
         req = urllib.request.Request(
-            "https://api.bankr.bot/agent/prompt",
+            f"{bankr_base}/agent/prompt",
             data=json.dumps({"prompt": prompt}).encode(),
             headers={"X-API-Key": api_key, "Content-Type": "application/json"},
             method="POST",
@@ -176,7 +176,7 @@ class ToolGate:
                 self.kill.trip("BANKR_DENIED:POLL_TIMEOUT")
 
             poll = urllib.request.Request(
-                f"https://api.bankr.bot/agent/job/{job_id}",
+                f"{bankr_base}/agent/job/{job_id}",
                 headers={"X-API-Key": api_key},
             )
             with urllib.request.urlopen(poll, timeout=10) as r:
@@ -220,11 +220,34 @@ def run_agent(code, grants):
 # =========================================================
 
 if __name__ == "__main__":
+    import os
 
-    AGENT_CODE = r'''
+    TEST_PROMPT = os.environ.get("TEST_PROMPT", "What is the price of SOL on Solana devnet for $10?")
+    ALLOWED_CHAINS_ENV = os.environ.get("ALLOWED_CHAINS", "solana")
+    ALLOWED_CHAINS = [c.strip().lower() for c in ALLOWED_CHAINS_ENV.split(",") if c.strip()]
+
+    # write prompt to file so mock server can inspect it (simple IPC for local tests)
+    try:
+        with open('last_prompt.txt', 'w') as f:
+            f.write(TEST_PROMPT)
+    except Exception:
+        pass
+
+    AGENT_CODE = rf'''
 def run(TASK, TOOLS):
-    return TOOLS.bankr_prompt("What is the price of ETH on Base for $50?")
+    return TOOLS.bankr_prompt("{TEST_PROMPT}")
 '''
+
+    # Allow overriding max USD via env for tests
+    try:
+        MAX_USD = float(os.environ.get("MAX_USD", "101"))
+    except Exception:
+        MAX_USD = 101.0
+
+    try:
+        POLL_TIMEOUT = int(os.environ.get("POLL_TIMEOUT", "3"))
+    except Exception:
+        POLL_TIMEOUT = 3
 
     result = run_agent(
         AGENT_CODE,
@@ -233,8 +256,9 @@ def run(TASK, TOOLS):
                 "blocked_actions": ["transfer", "withdraw", "approve", "bridge"],
                 "max_calls_per_min": 5,
                 "poll_timeout_s": 60,
-                "allowed_chains": ["base"],
-                "max_usd": 100,   # ✅ STEP 5 POLICY
+                "allowed_chains": ALLOWED_CHAINS,
+                "max_usd": MAX_USD,
+                "poll_timeout_s": POLL_TIMEOUT,
             })
         ],
     )

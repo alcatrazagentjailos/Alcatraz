@@ -179,7 +179,7 @@ if __name__ == "__main__":
     # Agent tries to read policy (allowed) but cannot modify it
     AGENT_CODE = r'''
 def run(TASK, TOOLS):
-    return TOOLS.bankr_prompt("What is the price of ETH on Base?")
+    return TOOLS.bankr_prompt("What is the price of ETH on solana?")
 '''
 
     result = run_agent(
@@ -188,7 +188,7 @@ def run(TASK, TOOLS):
             ("bankr.use", 120, {
                 "mode": "read",
                 "execution": "live",
-                "allowed_chains": ["base"],
+                "allowed_chains": ["solana"],
                 "max_usd": 100,
             })
         ],

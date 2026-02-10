@@ -134,7 +134,7 @@ class ToolGate:
 
         # Detect chain mentions in prompt. Add more aliases as needed.
         chain_aliases = {
-            "ethereum": ["ethereum", "eth mainnet", "mainnet"],
+            "ethereum": ["ethereum", "eth", "eth mainnet", "mainnet"],
             "base": ["base"],
             "solana": ["solana", "sol"],
             "bnb": ["bnb", "bsc", "binance", "binance smart chain"],
@@ -172,8 +172,10 @@ class ToolGate:
         if not api_key:
             self.kill.trip("BANKR_API_KEY_MISSING")
 
+        bankr_base = os.environ.get("BANKR_API_URL", "https://api.bankr.bot")
+
         req = urllib.request.Request(
-            "https://api.bankr.bot/agent/prompt",
+            f"{bankr_base}/agent/prompt",
             data=json.dumps({"prompt": prompt}).encode(),
             headers={
                 "X-API-Key": api_key,
@@ -209,7 +211,7 @@ class ToolGate:
 
             try:
                 poll_req = urllib.request.Request(
-                    f"https://api.bankr.bot/agent/job/{job_id}",
+                    f"{bankr_base}/agent/job/{job_id}",
                     headers={"X-API-Key": api_key, "Content-Type": "application/json"},
                 )
                 with urllib.request.urlopen(poll_req, timeout=10) as r:
@@ -265,11 +267,15 @@ def run_agent(code, grants):
 
 if __name__ == "__main__":
 
-    # ✅ Allowed example (Base)
-    AGENT_CODE = r'''
+    # Use environment overrides for testing: TEST_PROMPT and ALLOWED_CHAINS
+    prompt_text = os.environ.get("TEST_PROMPT", "What is the price of ETH on solana?")
+
+    AGENT_CODE = f'''
 def run(TASK, TOOLS):
-    return TOOLS.bankr_prompt("What is the price of ETH on Base?")
+    return TOOLS.bankr_prompt("{prompt_text}")
 '''
+
+    allowed_chains_env = [c.strip().lower() for c in os.environ.get("ALLOWED_CHAINS", "solana").split(",") if c.strip()]
 
     result = run_agent(
         AGENT_CODE,
@@ -278,7 +284,7 @@ def run(TASK, TOOLS):
                 "blocked_actions": ["transfer", "withdraw", "approve", "bridge", "stake", "unstake"],
                 "max_calls_per_min": 5,
                 "poll_timeout_s": 60,
-                "allowed_chains": ["base"],   # ✅ STEP 4 policy
+                "allowed_chains": allowed_chains_env,
             })
         ],
     )

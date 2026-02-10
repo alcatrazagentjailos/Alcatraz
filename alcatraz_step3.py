@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python3
 """
 ALCATRAZ Agent Jail OS
@@ -137,8 +138,9 @@ class ToolGate:
         if not api_key:
             self.kill.trip("BANKR_API_KEY_MISSING")
 
+        bankr_base = os.environ.get("BANKR_API_URL", "https://api.bankr.bot")
         req = urllib.request.Request(
-            "https://api.bankr.bot/agent/prompt",
+            f"{bankr_base}/agent/prompt",
             data=json.dumps({"prompt": prompt}).encode(),
             headers={
                 "X-API-Key": api_key,
@@ -174,7 +176,7 @@ class ToolGate:
 
             try:
                 poll_req = urllib.request.Request(
-                    f"https://api.bankr.bot/agent/job/{job_id}",
+                    f"{bankr_base}/agent/job/{job_id}",
                     headers={
                         "X-API-Key": api_key,
                         "Content-Type": "application/json",
@@ -249,26 +251,31 @@ if __name__ == "__main__":
 
     AGENT_CODE = r'''
 def run(TASK, TOOLS):
-    return TOOLS.bankr_prompt("What is the price of ETH on Base?")
+    return TOOLS.bankr_prompt("What is the price of ETH on solana?")
 '''
 
     result = run_agent(
-        AGENT_CODE,
-        grants=[
-            ("bankr.use", 60, {
-                "blocked_actions": [
-                    "transfer",
-                    "withdraw",
-                    "approve",
-                    "bridge",
-                    "stake",
-                    "unstake",
-                ],
-                "max_calls_per_min": 5,
-                "poll_timeout_s": 60,
-            })
-        ],
-    )
+    AGENT_CODE,
+    grants=[
+        ("bankr.use", 60, {
+            "blocked_actions": [
+                # ---- existing blocked actions ----
+                "transfer",
+                "withdraw",
+                "approve",
+                "bridge",
+                "stake",
+                "unstake",
+                "base",
+                "ethereum",
+                "bsc",
+                "polygon",
+            ],
+            "max_calls_per_min": 5,
+            "poll_timeout_s": 60,
+        })
+    ],
+)
 
-    print("RESULT:", result)
+print("RESULT:", result)
 

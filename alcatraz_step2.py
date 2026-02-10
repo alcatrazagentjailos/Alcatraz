@@ -148,8 +148,9 @@ class ToolGate:
         if not api_key:
             self.kill.trip("BANKR_API_KEY_MISSING")
 
+        bankr_base = os.environ.get("BANKR_API_URL", "https://api.bankr.bot")
         req = urllib.request.Request(
-            "https://api.bankr.bot/agent/prompt",
+            f"{bankr_base}/agent/prompt",
             data=json.dumps({"prompt": prompt}).encode(),
             headers={
                 "X-API-Key": api_key,

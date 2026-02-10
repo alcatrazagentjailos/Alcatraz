@@ -12,7 +12,7 @@ POLICY = {
     "allowed_actions": ["price", "balance", "swap"],
     "blocked_actions": ["transfer", "withdraw", "approve", "bridge"],
     "allowed_chains": ["base", "solana"],
-    "max_usd": 25,
+    "max_usd": 101,
     "max_calls_per_min": 10,
     "poll_timeout_s": 60,
 }
